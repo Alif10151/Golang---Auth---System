@@ -1,8 +1,9 @@
 package handlers
 
 import (
+	"GOLANG-AUTH-SYSTEM/internal/db"
+	"GOLANG-AUTH-SYSTEM/internal/models"
 	"encoding/json"
-	"fmt"
 	"net/http"
 
 	"golang.org/x/crypto/bcrypt"
@@ -33,6 +34,24 @@ func Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fmt.Println(string(hashedPass))
-	fmt.Fprintln(w, req.Name)
+	user := models.User{
+		Name:     req.Name,
+		Email:    req.Email,
+		Password: string(hashedPass),
+	}
+
+	err = db.DB.Create(&user).Error
+	if err != nil {
+		http.Error(w, "User registration failed", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+
+	json.NewEncoder(w).Encode(map[string]string{
+		"message": "User registered successfully",
+	})
+
+	//fmt.Fprintln(w, req.Name)
 }
