@@ -15,6 +15,47 @@ type RegisterReq struct {
 	Password string `json:"password"`
 }
 
+type LoginRequest struct {
+	Email    string `json:"email"`
+	Password string `json:"password"`
+}
+
+func Login(w http.ResponseWriter, r *http.Request) {
+
+	var req LoginRequest
+	err := json.NewDecoder(r.Body).Decode(&req)
+
+	if err != nil {
+		http.Error(w, "Invalid JSON", http.StatusBadRequest)
+		return
+	}
+
+	//fmt.Println(req.Email)
+
+	var user models.User
+
+	err = db.DB.Where("email=?", req.Email).First(&user).Error
+	if err != nil {
+		http.Error(w, "Invalid Email", http.StatusUnauthorized)
+		return
+	}
+
+	err = bcrypt.CompareHashAndPassword(
+		[]byte(user.Password),
+		[]byte(req.Password),
+	)
+
+	if err != nil {
+		http.Error(w, "Invalid Password", http.StatusUnauthorized)
+		return
+	}
+
+	json.NewEncoder(w).Encode(map[string]string{
+		"message": "Login Successful",
+	})
+
+}
+
 func Register(w http.ResponseWriter, r *http.Request) {
 
 	var req RegisterReq
@@ -25,6 +66,15 @@ func Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	var existingUser models.User
+
+	err = db.DB.Where("email=?", req.Email).First(&existingUser).Error
+	if err == nil { // checking the email
+		http.Error(w, "Email already existed", http.StatusConflict)
+		return // email exists already , so return the process of register
+	}
+
+	// else do register and hash pass
 	hashedPass, err := bcrypt.GenerateFromPassword( // Hash Generate
 		[]byte(req.Password), bcrypt.DefaultCost,
 	)

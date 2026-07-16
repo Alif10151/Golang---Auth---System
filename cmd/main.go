@@ -16,6 +16,7 @@ func main() {
 	})
 
 	http.HandleFunc("/register", handlers.Register)
+	http.HandleFunc("/login", handlers.Login)
 
 	fmt.Println("Server is running")
 	http.ListenAndServe(":8800", nil)
