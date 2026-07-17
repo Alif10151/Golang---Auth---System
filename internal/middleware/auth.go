@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"os"
@@ -26,8 +27,10 @@ func JWTAuth(next http.HandlerFunc) http.HandlerFunc {
 		}
 
 		tokenString := parts[1]
-		token, err := jwt.Parse(
-			tokenString, func(token *jwt.Token) (interface{}, error) {
+
+		claims := jwt.MapClaims{}
+		token, err := jwt.ParseWithClaims(
+			tokenString, claims, func(token *jwt.Token) (interface{}, error) {
 				return []byte(os.Getenv("JWT_SECRET")), nil
 			},
 		)
@@ -36,6 +39,18 @@ func JWTAuth(next http.HandlerFunc) http.HandlerFunc {
 			http.Error(w, "Invalid Token", http.StatusUnauthorized)
 			return
 		}
+
+		email := claims["email"].(string)
+		fmt.Println("Logged In User : ", email)
+
+		ctx := context.WithValue(
+			r.Context(),
+			"email",
+			email,
+		)
+
+		r = r.WithContext(ctx)
+
 		next(w, r)
 	}
 }
