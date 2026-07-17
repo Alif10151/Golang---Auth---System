@@ -3,6 +3,7 @@ package handlers
 import (
 	"GOLANG-AUTH-SYSTEM/internal/db"
 	"GOLANG-AUTH-SYSTEM/internal/models"
+	"GOLANG-AUTH-SYSTEM/internal/utils"
 	"encoding/json"
 	"net/http"
 
@@ -50,8 +51,21 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// json.NewEncoder(w).Encode(map[string]string{
+	// 	"message": "Login Successful",
+	// })
+
+	token, err := utils.GenerateToken(user.Email)
+	if err != nil {
+		http.Error(w, "Failed to generate token", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "Application/json")
+
 	json.NewEncoder(w).Encode(map[string]string{
 		"message": "Login Successful",
+		"token":   token,
 	})
 
 }

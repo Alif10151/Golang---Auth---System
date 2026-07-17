@@ -3,6 +3,7 @@ package main
 import (
 	"GOLANG-AUTH-SYSTEM/internal/db"
 	"GOLANG-AUTH-SYSTEM/internal/handlers"
+	"GOLANG-AUTH-SYSTEM/internal/middleware"
 	"fmt"
 	"net/http"
 )
@@ -17,6 +18,7 @@ func main() {
 
 	http.HandleFunc("/register", handlers.Register)
 	http.HandleFunc("/login", handlers.Login)
+	http.HandleFunc("/profile", middleware.JWTAuth(handlers.Profile))
 
 	fmt.Println("Server is running")
 	http.ListenAndServe(":8800", nil)
