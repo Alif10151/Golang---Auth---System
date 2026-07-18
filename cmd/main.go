@@ -19,6 +19,9 @@ func main() {
 	http.HandleFunc("/register", handlers.Register)
 	http.HandleFunc("/login", handlers.Login)
 	http.HandleFunc("/profile", middleware.JWTAuth(handlers.Profile))
+	http.HandleFunc("/logout", handlers.LogOut)
+	http.HandleFunc("/users", handlers.GetUsers)
+	http.HandleFunc("/users/", handlers.GetUserByID)
 
 	fmt.Println("Server is running")
 	http.ListenAndServe(":8800", nil)

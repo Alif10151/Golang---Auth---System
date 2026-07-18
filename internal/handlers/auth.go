@@ -119,3 +119,9 @@ func Register(w http.ResponseWriter, r *http.Request) {
 
 	//fmt.Fprintln(w, req.Name)
 }
+
+func LogOut(w http.ResponseWriter, r *http.Request) {
+	json.NewEncoder(w).Encode(map[string]string{
+		"message": "Logout Successful",
+	})
+}
