@@ -22,6 +22,7 @@ func main() {
 	http.HandleFunc("/logout", handlers.LogOut)
 	http.HandleFunc("/users", handlers.GetUsers)
 	http.HandleFunc("/users/", handlers.GetUserByID)
+	http.HandleFunc("/update_user", handlers.UpdateUser)
 
 	fmt.Println("Server is running")
 	http.ListenAndServe(":8800", nil)

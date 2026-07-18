@@ -90,3 +90,43 @@ func GetUserByID(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(response)
 
 }
+
+func UpdateUser(w http.ResponseWriter, r *http.Request) {
+
+	var input struct {
+		ID    uint   `json:"id"`
+		Name  string `json:"name"`
+		Email string `json:"email"`
+	}
+
+	err := json.NewDecoder(r.Body).Decode(&input)
+	if err != nil {
+		http.Error(w, "Invalid Request Body", http.StatusBadRequest)
+		return
+	}
+
+	var user models.User
+
+	err = db.DB.First(&user, input.ID).Error
+	if err != nil {
+		http.Error(w, "User Not Found", http.StatusNotFound)
+		return
+	}
+
+	user.Name = input.Name
+	user.Email = input.Email
+
+	err = db.DB.Save(&user).Error
+	if err != nil {
+		http.Error(w, "Failed to Update User", http.StatusInternalServerError)
+		return
+	}
+
+	response := models.UserResponse{
+		ID:    user.ID,
+		Name:  user.Name,
+		Email: user.Email,
+	}
+
+	json.NewEncoder(w).Encode(response)
+}
