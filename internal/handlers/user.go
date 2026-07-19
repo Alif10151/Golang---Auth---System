@@ -15,31 +15,6 @@ type ProfileResponse struct {
 	Email string `json:"email"`
 }
 
-func Profile(w http.ResponseWriter, r *http.Request) {
-	// json.NewEncoder(w).Encode(map[string]string{
-	// 	"message": "Welcome to Profile",
-	// })
-	email := r.Context().Value("email").(string)
-	//fmt.Println(email)
-
-	var user models.User
-
-	err := db.DB.Where("email=?", email).First(&user).Error
-
-	if err != nil {
-		http.Error(w, "User Not Found", http.StatusNotFound)
-		return
-	}
-
-	response := ProfileResponse{
-		ID:    user.ID,
-		Name:  user.Name,
-		Email: user.Email,
-	}
-
-	json.NewEncoder(w).Encode(response)
-}
-
 func GetUsers(w http.ResponseWriter, r *http.Request) {
 	var users []models.User
 

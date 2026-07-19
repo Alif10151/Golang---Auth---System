@@ -146,20 +146,5 @@ func Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// w.Header().Set("Content-Type", "application/json")
-	// w.WriteHeader(http.StatusCreated)
-
-	// json.NewEncoder(w).Encode(map[string]string{
-	// 	"message": "User registered successfully",
-	// })
-
-	//fmt.Fprintln(w, req.Name)
-
 	utils.Success(w, http.StatusCreated, "User Registered Successfully", nil)
-}
-
-func LogOut(w http.ResponseWriter, r *http.Request) {
-	json.NewEncoder(w).Encode(map[string]string{
-		"message": "Logout Successful",
-	})
 }
