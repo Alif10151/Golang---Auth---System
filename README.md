@@ -159,7 +159,7 @@ Golang-Auth-System
 ## Clone the Repository
 
 ```bash
-git clone <https://github.com/Alif10151/Golang---Auth---System >
+git clone <https://github.com/Alif10151/Golang---Auth---System>
 
 cd Golang-Auth-System
 ```
