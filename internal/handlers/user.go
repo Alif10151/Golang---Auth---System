@@ -130,3 +130,36 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 
 	json.NewEncoder(w).Encode(response)
 }
+
+func DeleteUser(w http.ResponseWriter, r *http.Request) {
+
+	var input struct {
+		ID uint `json:"id"`
+	}
+
+	err := json.NewDecoder(r.Body).Decode(&input)
+	if err != nil {
+		http.Error(w, "Invalid Request Body", http.StatusBadRequest)
+		return
+	}
+
+	var user models.User
+	err = db.DB.First(&user, input.ID).Error
+
+	if err != nil {
+		http.Error(w, "User Not Found", http.StatusNotFound)
+		return
+	}
+
+	err = db.DB.Delete(&user).Error
+
+	if err != nil {
+		http.Error(w, "Failed to delete user", http.StatusInternalServerError)
+		return
+	}
+
+	json.NewEncoder(w).Encode(map[string]string{
+		"message": "User Deleted Successfully",
+	})
+
+}

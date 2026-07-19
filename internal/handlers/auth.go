@@ -6,6 +6,8 @@ import (
 	"GOLANG-AUTH-SYSTEM/internal/utils"
 	"encoding/json"
 	"net/http"
+	"net/mail"
+	"strings"
 
 	"golang.org/x/crypto/bcrypt"
 )
@@ -27,7 +29,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	err := json.NewDecoder(r.Body).Decode(&req)
 
 	if err != nil {
-		http.Error(w, "Invalid JSON", http.StatusBadRequest)
+		utils.Error(w, http.StatusBadRequest, "Invalid JSON")
 		return
 	}
 
@@ -37,7 +39,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 
 	err = db.DB.Where("email=?", req.Email).First(&user).Error
 	if err != nil {
-		http.Error(w, "Invalid Email", http.StatusUnauthorized)
+		utils.Error(w, http.StatusUnauthorized, "Invalid Email")
 		return
 	}
 
@@ -47,7 +49,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	)
 
 	if err != nil {
-		http.Error(w, "Invalid Password", http.StatusUnauthorized)
+		utils.Error(w, http.StatusUnauthorized, "Invalid Password")
 		return
 	}
 
@@ -57,16 +59,16 @@ func Login(w http.ResponseWriter, r *http.Request) {
 
 	token, err := utils.GenerateToken(user.Email)
 	if err != nil {
-		http.Error(w, "Failed to generate token", http.StatusInternalServerError)
+		utils.Error(w, http.StatusInternalServerError, "Failed to generate token")
 		return
 	}
 
 	w.Header().Set("Content-Type", "Application/json")
 
-	json.NewEncoder(w).Encode(map[string]string{
-		"message": "Login Successful",
-		"token":   token,
-	})
+	utils.Success(w, http.StatusOK, "Login Successful", map[string]string{
+		"token": token,
+	},
+	)
 
 }
 
@@ -76,7 +78,40 @@ func Register(w http.ResponseWriter, r *http.Request) {
 
 	err := json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
-		http.Error(w, "Invalid JSON Type", http.StatusBadRequest)
+		utils.Error(w, http.StatusBadRequest, "Invalid JSON Type")
+		return
+	}
+
+	// Remove extra spaces
+	req.Name = strings.TrimSpace(req.Name)
+	req.Email = strings.TrimSpace(req.Email)
+	req.Password = strings.TrimSpace(req.Password)
+
+	//validation
+	if strings.TrimSpace(req.Name) == "" {
+		utils.Error(w, http.StatusBadRequest, "Name is required")
+		return
+	}
+
+	if strings.TrimSpace(req.Email) == "" {
+		utils.Error(w, http.StatusBadRequest, "Email is required")
+		return
+	}
+
+	if strings.TrimSpace(req.Password) == "" {
+		utils.Error(w, http.StatusBadRequest, "Password is required")
+		return
+	}
+
+	if len(req.Password) < 6 {
+		utils.Error(w, http.StatusBadRequest, "Password must be at least 6 digits")
+		return
+	}
+
+	// Email format validation
+	_, err = mail.ParseAddress(req.Email)
+	if err != nil {
+		utils.Error(w, http.StatusBadRequest, "Invalid Email Formet")
 		return
 	}
 
@@ -84,7 +119,7 @@ func Register(w http.ResponseWriter, r *http.Request) {
 
 	err = db.DB.Where("email=?", req.Email).First(&existingUser).Error
 	if err == nil { // checking the email
-		http.Error(w, "Email already existed", http.StatusConflict)
+		utils.Error(w, http.StatusConflict, "Email already existed")
 		return // email exists already , so return the process of register
 	}
 
@@ -94,10 +129,11 @@ func Register(w http.ResponseWriter, r *http.Request) {
 	)
 
 	if err != nil {
-		http.Error(w, "Password Hash Failed", http.StatusInternalServerError)
+		utils.Error(w, http.StatusInternalServerError, "Password Hash Failed")
 		return
 	}
 
+	//user create
 	user := models.User{
 		Name:     req.Name,
 		Email:    req.Email,
@@ -106,18 +142,20 @@ func Register(w http.ResponseWriter, r *http.Request) {
 
 	err = db.DB.Create(&user).Error
 	if err != nil {
-		http.Error(w, "User registration failed", http.StatusInternalServerError)
+		utils.Error(w, http.StatusInternalServerError, "User Registration Failed")
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusCreated)
+	// w.Header().Set("Content-Type", "application/json")
+	// w.WriteHeader(http.StatusCreated)
 
-	json.NewEncoder(w).Encode(map[string]string{
-		"message": "User registered successfully",
-	})
+	// json.NewEncoder(w).Encode(map[string]string{
+	// 	"message": "User registered successfully",
+	// })
 
 	//fmt.Fprintln(w, req.Name)
+
+	utils.Success(w, http.StatusCreated, "User Registered Successfully", nil)
 }
 
 func LogOut(w http.ResponseWriter, r *http.Request) {
